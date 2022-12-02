@@ -1,7 +1,7 @@
 # SAN Strings
 
-This simple script generates all possible Standard Algebraic Notation (SAN) strings for chess moves, with some special logic to
-avoid listing SAN strings that will never actually occur.
+This simple script generates all 12,568 possible Standard Algebraic Notation (SAN) strings for chess moves, with some special logic to
+avoid listing SAN strings that can never actually occur for geometric reasons.
 
 If someone notices a mistake in my logic (some strings are generated that would never occur), please open an issue.
 
@@ -37,34 +37,39 @@ Bishops moving to `a2-a7` or `h2-h7` require three special cases corresponding t
 
 ![image](https://backscattering.de/web-boardimage/board.svg?size=300&coordinates=true&fen=8/8/8/8/8/8/8/8&arrows=a2,a7,h2,h7) ![image](https://backscattering.de/web-boardimage/board.svg?size=300&coordinates=true&fen=8/8/8/8/8/8/8/8&arrows=a3,a6,h3,h6) ![image](https://backscattering.de/web-boardimage/board.svg?size=300&coordinates=true&fen=8/8/8/8/8/8/8/8&arrows=a4,a5,h4,h5)
 
-These moves can always be disambiguated using the rank, and sometimes
-the file, by the same logic as above. However, since using the file is prefered over the rank when available in SAN syntax, we
-*sometimes* must generate both, ex. `Beh6` and `B4h7`:
+These moves can always be disambiguated using the rank, and sometimes the file, by the same logic as above. However, since using the file
+is prefered over the rank when available in SAN syntax, we *only sometimes* must generate both, ex. `Beh6` and `B4h6`:
 
-![image](https://backscattering.de/web-boardimage/board.svg?size=400&coordinates=true&fen=8/6B1/8/8/5B2/8/8/8&arrows=Gf4h6,h6) ![image](https://backscattering.de/web-boardimage/board.svg?size=400&coordinates=true&fen=5B2/8/8/8/5B2/8/8/8&arrows=Gf4h6,h6)
+![image](https://backscattering.de/web-boardimage/board.svg?size=400&coordinates=true&fen=8/6B1/8/8/5B2/8/8/8&arrows=Gf4h6,h6,Bf1f8) ![image](https://backscattering.de/web-boardimage/board.svg?size=400&coordinates=true&fen=5B2/8/8/8/5B2/8/8/8&arrows=Gf4h6,h6,Ba4h4)
 
-However, for example, the "valid" SAN string `B3h6` is not possible. The rank discriminator implies that using the file would not
-have been enough to fully disambiguate the piece (since using the file is preferred). Therefore we can infer the following facts:
-- There is a bishop on rank `3` rank that can move to `h6`
-- The only square where this is possible is `e3`
+However, for example, the "valid" SAN string `B3h6` is not possible. The presence of a rank discriminator implies that using the file
+would not have been enough to fully disambiguate the source piece (since using the file is preferred). Therefore, we know the following:
+- There is a bishop on rank `3` rank that can move to `h6`. The only square where this is possible is `e3`.
 - There must be another bishops on the same file as the source bishop (the `e` file), since otherwise the source file would have been
-the disambiguator
+the disambiguator.
 
-but these facts make a contradiction. It is also visually not possible—we would need an `e9` square to put another bishop on the `e` file
-that can move to `h6`:
+but these facts already make a contradiction. It is also visually not possible—we would need an `e9` square to put another bishop on 
+the `e` file that can move to `h6`:
 
 ![image](https://backscattering.de/web-boardimage/board.svg?size=400&coordinates=true&fen=5B2/8/8/8/8/4B3/8/8&arrows=Ge3h6,h6,Rh6f8)
 
-The general rule is that we always generate a string using the file discriminator, but only generate one using the rank discriminator when
-the rank of the source piece is within *d* ranks of the destination piece, where *d* is the length of the shortest diagonal protruding
+The general rule is that we always generate a string using the file discriminator, and also generate one using the rank discriminator 
+if the rank of the source piece is within *d* ranks of the destination piece, where *d* is the length of the shortest diagonal protruding
 from the destination square:
 
 ![image](https://backscattering.de/web-boardimage/board.svg?size=300&coordinates=true&fen=6B1/8/6B1/8/8/8/8/8&arrows=Gh7g8,h7,Rh7b1,Gh8a8,h7a7,h6a6,Rh5a5,Rh4a4,Rh3a3,Rh2a2,Rh1a1) ![image](https://backscattering.de/web-boardimage/board.svg?size=300&coordinates=true&fen=5B2/8/8/8/5B2/8/8/8&arrows=Gh6f8,h6,Rh6c1,Gh8a8,h7a7,h6a6,h5a5,h4a4,Rh3a3,Rh2a2,Rh1a1) ![image](https://backscattering.de/web-boardimage/board.svg?size=300&coordinates=true&fen=4B3/8/8/8/8/8/4B3/8&arrows=Gh5e8,h5,Rh5d1,Gh8a8,h7a7,h6a6,h5a5,h4a4,h3a3,h2a2,Rh1a1)
 
 ### Rooks
-Rooks are more straighforward. Their only restriction on discriminators is that if a rook is landing on ranks `1` or `8`, they will never require 
-a rank discriminator. If another rook can move to its backrank destination square, it must not already be on that rank, so the file will always be
-the preferred discriminator. Therefore a full-square discriminator will never be required either.
+Rooks are more straighforward. Their only restriction on discriminators is that if a rook is landing on ranks `1` or `8`, it will never require 
+a rank discriminator. If another rook can move to the same backrank destination square, it must not already be on that rank, so the file will always be
+the preferred discriminator.
+
+![image](https://backscattering.de/web-boardimage/board.svg?size=400&coordinates=true&fen=R6R/8/8/8/8/8/5R2/5R2&arrows=f8,a8f8,h8f8,f2f8,Rf1)
+
+Therefore a full-square discriminator will never be required for these moves either. The same is not true of the `a` and `h`
+files, which can require a file, rank, or full-square discriminator.
+
+![image](https://backscattering.de/web-boardimage/board.svg?size=400&coordinates=true&fen=7R/8/RR6/8/8/8/8/7R&arrows=h6,b6h6,h1h6,h8h6)
 
 ### Knights
 Knights moving to the corner never require a rank descriminator, a maximum of two knights can move there and they are never on the same file.

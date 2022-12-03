@@ -37,6 +37,11 @@ CORNERS_SQUARESET = chess.SquareSet(chess.BB_CORNERS)
 BACKRANKS_SQUARESET = chess.SquareSet(chess.BB_BACKRANKS)
 EDGES_SQUARESET = chess.SquareSet(chess.BB_BACKRANKS | chess.BB_FILES[0] | chess.BB_FILES[7])
 
+# Special cases for bishop SAN moves with rank disambiguators
+EDGE_2_SQUARESET = chess.SquareSet(chess.BB_A2 | chess.BB_A7 | chess.BB_H2 | chess.BB_H7)
+EDGE_3_SQUARESET = chess.SquareSet(chess.BB_A3 | chess.BB_A6 | chess.BB_H3 | chess.BB_H6)
+EDGE_4_SQUARESET = chess.SquareSet(chess.BB_A4 | chess.BB_A5 | chess.BB_H4 | chess.BB_H5)
+
 san_strings: Set[str] = set()
 for from_square in chess.SQUARES:
     from_square_name = chess.square_name(from_square)
@@ -68,8 +73,8 @@ for from_square in chess.SQUARES:
                 else:
                     san_strings.add(san)
             elif symbol == 'n':
-                if to_square in CORNERS_SQUARESET:
-                    # Knights moving to the corners will never be descriminated by rank or full square 
+                if to_square in BACKRANKS_SQUARESET:
+                    # Knights moving to ranks 1 or 8 will never be discriminated by rank or full square
                     san_strings |= {
                         f'N{to_square_name}',
                         f'N{from_file}{to_square_name}',
@@ -89,10 +94,10 @@ for from_square in chess.SQUARES:
                     }
             elif symbol == 'b':
                 if to_square in CORNERS_SQUARESET:
-                    # Bishops moving to the corners will never require any descrimination
+                    # Bishops moving to the corners will never require any discrimination
                     san_strings.add(f'B{to_square_name}')
                 elif to_square in BACKRANKS_SQUARESET:
-                    # Bishops moving to ranks 1 or 8 will never be descriminated by rank or full square
+                    # Bishops moving to ranks 1 or 8 will never be discriminated by rank or full square
                     san_strings |= {
                         f'B{to_square_name}',
                         f'B{from_file}{to_square_name}',
@@ -100,15 +105,31 @@ for from_square in chess.SQUARES:
                         f'B{from_file}x{to_square_name}',
                     }
                 elif to_square in EDGES_SQUARESET:
-                    # Bishops moving to a2-a7 or h2-h7 will never be descriminated by full square
                     san_strings |= {
                         f'B{to_square_name}',
                         f'B{from_file}{to_square_name}',
-                        f'B{from_rank}{to_square_name}',
                         f'Bx{to_square_name}',
                         f'B{from_file}x{to_square_name}',
-                        f'B{from_rank}x{to_square_name}',
                     }
+
+                    # Bishops moving to a2-a7 or h2-h7 require 3 special cases (see README)
+                    # Get the length of the shortest diagonal protruding from ``to_square``
+                    if to_square in EDGE_2_SQUARESET:
+                        shortest_diag_len = 1
+                    elif to_square in EDGE_3_SQUARESET:
+                        shortest_diag_len = 2
+                    elif to_square in EDGE_4_SQUARESET:
+                        shortest_diag_len = 3
+                    else:
+                        raise RuntimeError('This should not happen')
+
+                    # For a rank descriminator to be possible, source and destination square
+                    # must be separated by <= ``shortest_diag_len`` ranks
+                    if abs(int(to_rank) - int(from_rank)) <= shortest_diag_len:
+                        san_strings |= {
+                            f'B{from_rank}{to_square_name}',
+                            f'B{from_rank}x{to_square_name}',
+                        }
                 else:
                     san_strings |= {
                         f'B{to_square_name}',
@@ -122,7 +143,7 @@ for from_square in chess.SQUARES:
                     }
             elif symbol == 'r':
                 if to_square in BACKRANKS_SQUARESET:
-                    # Rooks moving to ranks 1 or 8 will never be descriminated by rank or full square
+                    # Rooks moving to ranks 1 or 8 will never be discriminated by rank or full square
                     san_strings |= {
                         f'R{to_square_name}',
                         f'R{from_file}{to_square_name}',

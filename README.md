@@ -1,9 +1,9 @@
 # SAN Strings
 
-This simple script generates all 12,568 possible Standard Algebraic Notation (SAN) strings for chess moves, with some special logic to
+This simple script generates all 12,432 possible Standard Algebraic Notation (SAN) strings for chess moves, with some special logic to
 avoid listing SAN strings that can never actually occur for geometric reasons.
 
-If someone notices a mistake in my logic (some strings are generated that would never occur), please open an issue.
+If someone notices a mistake in my logic (that some strings are generated that would never occur), please open an issue.
 
 ```sh
 pip install -r requirements.txt
@@ -72,9 +72,9 @@ files, which can require a file, rank, or full-square discriminator.
 ![image](https://backscattering.de/web-boardimage/board.svg?size=400&coordinates=true&fen=7R/8/RR6/8/8/8/8/7R&arrows=h6,b6h6,h1h6,h8h6)
 
 ### Knights
-Knights moving to the corner never require a rank descriminator, a maximum of two knights can move there and they are never on the same file.
+Knights moving to ranks 1 or 8 never require a rank or full-square descriminator since the knights that can move there are never on the same file.
 
-![image](https://backscattering.de/web-boardimage/board.svg?size=400&coordinates=true&fen=8/2N5/1N6/8/8/8/8/8&arrows=Bb6,Bc7,b6a8,a8)
+![image](https://backscattering.de/web-boardimage/board.svg?size=400&coordinates=true&fen=8/2N3N1/1N3N2/8/8/8/8/8&arrows=b6a8,c7a8,Bc7e8,Bd6e8,Bf6e8,Bg7e8)
 
 ### Queens
 Queens have no restrictions because at least three rays protrude from each square in the directions of the queen's movement, so we can always

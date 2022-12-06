@@ -19,14 +19,14 @@ with discriminators: some are legal syntactically but could never occur. The log
 Bishops are the most complicated. For example, in the rare situation where a promotion to a bishop leaves two same-colored
 bishops on the board, a bishop move to ranks `1` or `8` can require a discriminator, but will never require a rank discriminator
 (ex. `B3d1`). At most two diagonal rays protrude from the destination square, and only one bishop occupying each diagonal
-could ever move to that square. Since the two bishops will never be on the same file, we
-can fully disambiguate the move using only the file of the source piece (ex. `Bcd1`). Although specifying only the rank is
-sometimes also sufficient, [the file will always be preferred](https://en.wikipedia.org/wiki/Algebraic_notation_(chess)#Disambiguating_moves).
+could ever move to that square. Since the two bishops will never be on the same file, we can fully disambiguate the move
+using only the file of the source piece (ex. `Bcd1`). Although specifying only the rank is sometimes also sufficient, [the 
+file will always be preferred](https://en.wikipedia.org/wiki/Algebraic_notation_(chess)#Disambiguating_moves).
 
 ![image](https://backscattering.de/web-boardimage/board.svg?size=400&coordinates=true&fen=8/8/8/8/6B1/1B6/8/8&arrows=Gb3d1,Gd1)
 
 Similarly, a bishop moving to the corner never requires a discriminator, since only one diagonal ray protrudes
-from the destination square, and you can't jump your own pieces.
+from the destination square and you can't jump your own pieces.
 
 ![image](https://backscattering.de/web-boardimage/board.svg?size=400&coordinates=true&fen=8/8/8/8/4B3/5B2/8/8&arrows=Ge4a8)
 
@@ -53,7 +53,7 @@ the `e` file that can move to `h6`:
 
 ![image](https://backscattering.de/web-boardimage/board.svg?size=400&coordinates=true&fen=5B2/8/8/8/8/4B3/8/8&arrows=Ge3h6,h6,Rh6f8)
 
-The general rule is that we always generate a string using the file discriminator, and also generate one using the rank discriminator 
+The general rule is that we always generate a string for the file discriminator, but only generate one for the rank discriminator 
 if the rank of the source piece is within *d* ranks of the destination piece, where *d* is the length of the shortest diagonal protruding
 from the destination square:
 
@@ -62,12 +62,11 @@ from the destination square:
 ### Rooks
 Rooks are more straighforward. Their only restriction on discriminators is that if a rook is landing on ranks `1` or `8`, it will never require 
 a rank discriminator. If another rook can move to the same backrank destination square, it must not already be on that rank, so the file will always be
-the preferred discriminator.
+the preferred discriminator. Therefore a full-square discriminator will never be required for these moves either.
 
 ![image](https://backscattering.de/web-boardimage/board.svg?size=400&coordinates=true&fen=R6R/8/8/8/8/8/5R2/5R2&arrows=f8,a8f8,h8f8,f2f8,Rf1)
 
-Therefore a full-square discriminator will never be required for these moves either. The same is not true of the `a` and `h`
-files, which can require a file, rank, or full-square discriminator.
+The same is not true of the `a` and `h` files, which can require a file, rank, or full-square discriminator.
 
 ![image](https://backscattering.de/web-boardimage/board.svg?size=400&coordinates=true&fen=7R/8/RR6/8/8/8/8/7R&arrows=h6,b6h6,h1h6,h8h6)
 

@@ -238,6 +238,7 @@ Nh5
 Nh6
 Nh7
 Nh8
+O-O
 Qa1
 Qa2
 Qa3
@@ -5494,6 +5495,7 @@ Nhxg5
 Nhxg6
 Nhxg7
 Nhxg8
+O-O-O
 Q1xa1
 Q1xa2
 Q1xa3

@@ -42,7 +42,7 @@ EDGE_2_SQUARESET = chess.SquareSet(chess.BB_A2 | chess.BB_A7 | chess.BB_H2 | che
 EDGE_3_SQUARESET = chess.SquareSet(chess.BB_A3 | chess.BB_A6 | chess.BB_H3 | chess.BB_H6)
 EDGE_4_SQUARESET = chess.SquareSet(chess.BB_A4 | chess.BB_A5 | chess.BB_H4 | chess.BB_H5)
 
-san_strings: Set[str] = set()
+san_strings: Set[str] = {'O-O', 'O-O-O'}  # Start by adding castling moves manually
 for from_square in chess.SQUARES:
     from_square_name = chess.square_name(from_square)
     from_file, from_rank = from_square_name

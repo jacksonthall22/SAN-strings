@@ -74,7 +74,7 @@ for from_square in chess.SQUARES:
                     san_strings.add(san)
             elif symbol == 'n':
                 if to_square in BACKRANKS_SQUARESET:
-                    # Knights moving to ranks 1 or 8 will never be discriminated by rank or full square
+                    # Knights moving to ranks 1 or 8 will never be disambiguated by rank or full square
                     san_strings |= {
                         f'N{to_square_name}',
                         f'N{from_file}{to_square_name}',
@@ -94,10 +94,10 @@ for from_square in chess.SQUARES:
                     }
             elif symbol == 'b':
                 if to_square in CORNERS_SQUARESET:
-                    # Bishops moving to the corners will never require any discrimination
+                    # Bishops moving to the corners will never require any disambiguator
                     san_strings.add(f'B{to_square_name}')
                 elif to_square in BACKRANKS_SQUARESET:
-                    # Bishops moving to ranks 1 or 8 will never be discriminated by rank or full square
+                    # Bishops moving to ranks 1 or 8 will never be disambiguator by rank or full square
                     san_strings |= {
                         f'B{to_square_name}',
                         f'B{from_file}{to_square_name}',
@@ -173,7 +173,7 @@ for from_square in chess.SQUARES:
                     f'Q{from_square_name}x{to_square_name}',
                 }
             elif symbol == 'k':
-                # Kings will never 
+                # Kings will never require disambiguator
                 san_strings |= {
                     f'K{to_square_name}',
                     f'Kx{to_square_name}',

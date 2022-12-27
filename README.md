@@ -1,6 +1,6 @@
 # SAN Strings
 
-This simple script generates all 12,432 possible Standard Algebraic Notation (SAN) strings for chess moves, with some special logic to
+This simple script generates all 12,434 possible Standard Algebraic Notation (SAN) strings for chess moves, with some special logic to
 avoid listing SAN strings that can never actually occur for geometric reasons.
 
 If someone notices a mistake in my logic (that some strings are generated that would never occur), please open an issue.

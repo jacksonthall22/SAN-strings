@@ -67,7 +67,7 @@ The general rule is that we always generate a string for the file discriminator,
 if the rank of the source piece is within *d* ranks of the destination piece, where *d* is the length of the shortest diagonal protruding
 from the destination square:
 
-![image](https://backscattering.de/web-boardimage/board.svg?size=300&coordinates=true&fen=6B1/8/6B1/8/8/8/8/8&arrows=Gh7g8,h7,Rh7b1,Gh8a8,h7a7,h6a6,Rh5a5,Rh4a4,Rh3a3,Rh2a2,Rh1a1) ![image](https://backscattering.de/web-boardimage/board.svg?size=300&coordinates=true&fen=5B2/8/8/8/5B2/8/8/8&arrows=Gh6f8,h6,Rh6c1,Gh8a8,h7a7,h6a6,h5a5,h4a4,Rh3a3,Rh2a2,Rh1a1) ![image](https://backscattering.de/web-boardimage/board.svg?size=300&coordinates=true&fen=4B3/8/8/8/8/8/4B3/8&arrows=Gh5e8,h5,Rh5d1,Gh8a8,h7a7,h6a6,h5a5,h4a4,h3a3,h2a2,Rh1a1)
+![image](https://backscattering.de/web-boardimage/board.svg?size=300&coordinates=true&fen=6B1/8/6B1/8/8/8/8/8&arrows=Bh7g8,h7,Bh7g6,Gh8a8,h7a7,h6a6,Rh5a5,Rh4a4,Rh3a3,Rh2a2,Rh1a1) ![image](https://backscattering.de/web-boardimage/board.svg?size=300&coordinates=true&fen=5B2/8/8/8/5B2/8/8/8&arrows=Bh6f8,h6,Bh6f4,Gh8a8,h7a7,h6a6,h5a5,h4a4,Rh3a3,Rh2a2,Rh1a1) ![image](https://backscattering.de/web-boardimage/board.svg?size=300&coordinates=true&fen=4B3/8/8/8/8/8/4B3/8&arrows=Bh5e8,h5,Bh5e2,Gh8a8,h7a7,h6a6,h5a5,h4a4,h3a3,h2a2,Rh1a1)
 
 ### Rooks
 Rooks are more straighforward. Their only restriction on discriminators is that if a rook is landing on ranks `1` or `8`, it will never require 

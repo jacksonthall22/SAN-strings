@@ -21,7 +21,7 @@ python3 gen_san_strings.py
 # How it works
 ## Discriminators
 
-The only considerations beyond the naive "move every piece from every square to every other legal square" approach has to do
+The only considerations beyond the naive approach of "move every piece from every square to every other legal square" has to do
 with discriminators: some are legal syntactically but could never occur. The logic is slightly different for each piece, which
 I describe below.
 

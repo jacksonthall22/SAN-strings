@@ -22,7 +22,8 @@ python3 gen_san_strings.py
 ## Discriminators
 
 The only considerations beyond the naive "move every piece from every square to every other legal square" approach has to do
-with discriminators: some are legal syntactically but could never occur. The logic is slightly different for each piece.
+with discriminators: some are legal syntactically but could never occur. The logic is slightly different for each piece, which
+I describe below.
 
 ### Bishops
 Bishops are the most complicated. For example, in the rare situation where a promotion to a bishop leaves two same-colored

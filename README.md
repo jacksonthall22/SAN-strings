@@ -3,7 +3,7 @@
 This simple script generates all 12,434 possible Standard Algebraic Notation (SAN) strings for chess moves, with some special logic to
 avoid listing SAN strings that can never actually occur for geometric reasons.
 
-If someone notices a mistake in my logic (that some strings are generated that would never occur), please open an issue.
+If someone notices a mistake in my logic (that some strings generated can never occur), please open an issue!
 
 ### Note
 Check (`+`) and checkmate (`#`) symbols are omitted in `san_strings.txt` but included in `san_strings_with_symbols.txt`. It is fairly easy 
@@ -11,12 +11,14 @@ to convince yourself that no special logic is required to determine which subset
 deliver either check or mate at least via a discovery. Therefore, `san_strings_with_symbols.txt` is exactly three times the length of 
 `san_strings.txt` as it simply makes two additional copies of each SAN move, one appending `+` and one appending `#`.
 
-
+# Run it yourself
 ```sh
+git clone https://github.com/jacksonthall22/SAN-strings.git && cd SAN-strings
 pip install -r requirements.txt
 python3 gen_san_strings.py
 ```
 
+# How it works
 ## Discriminators
 
 The only considerations beyond the naive "move every piece from every square to every other legal square" approach has to do

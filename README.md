@@ -6,9 +6,10 @@ avoid listing SAN strings that can never actually occur for geometric reasons.
 If someone notices a mistake in my logic (that some strings are generated that would never occur), please open an issue.
 
 ### Note
-Check (`+`) and checkmate (`#`) symbols are omitted. However, it is fairly easy to convince yourself that no special logic is required
-to determine which subset of all SAN moves could deliver check/mate: all moves can deliver either check or mate at least via a discovery.
-Therefore, `san_strings_with_symbols.txt` is three times the length of `san_strings.txt` as it makes a copy of each move for `+` and `#`.
+Check (`+`) and checkmate (`#`) symbols are omitted in `san_strings.txt` but included in `san_strings_with_symbols.txt`. It is fairly easy 
+to convince yourself that no special logic is required to determine which subset of all SAN moves could deliver check/mate: all moves can 
+deliver either check or mate at least via a discovery. Therefore, `san_strings_with_symbols.txt` is exactly three times the length of 
+`san_strings.txt` as it simply makes two additional copies of each SAN move, one appending `+` and one appending `#`.
 
 
 ```sh

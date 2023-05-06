@@ -71,7 +71,7 @@ from the destination square:
 
 ### Rooks
 Rooks are more straighforward. Their only restriction on discriminators is that if a rook is landing on ranks `1` or `8`, it will never require 
-a rank discriminator. If another rook can move to the same backrank destination square, it must not already be on that rank, so the file will always be
+a rank discriminator. If two rooks can move to the same backrank destination square, they must not be on the same file, so the file will always be
 the preferred discriminator. Therefore a full-square discriminator will never be required for these moves either.
 
 ![image](https://backscattering.de/web-boardimage/board.svg?size=400&coordinates=true&fen=R6R/8/8/8/8/8/5R2/5R2&arrows=f8,a8f8,h8f8,f2f8,Rf1)

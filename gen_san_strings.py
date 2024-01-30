@@ -1,187 +1,209 @@
 import chess
-from typing import Set
+from typing import Literal, Set
 
 
 _b = chess.Board.empty()
-def get_squareset(from_square: chess.Square, symbol: str) -> chess.SquareSet:
+""" A blank `chess.Board` to use for generating moves. """
+
+
+def get_adjacent_files(file: Literal[0, 1, 2, 3, 4, 5, 6, 7]) -> chess.Bitboard:
     """
-    Get a ``chess.SquareSet`` of all squares that the piece could move to.
-    ``SquareSet``s for pawns contain all squares where a white OR black pawn
-    could move to (including captures in both directions).
+    Get a `chess.Bitboard` of `file`'s adjacent files.
     """
-    destinations = chess.SquareSet()
+    return (chess.BB_FILES[file - 1] if file > 0 else 0) | (
+        chess.BB_FILES[file + 1] if file < 7 else 0
+    )
+
+
+def get_adjacent_ranks(rank: Literal[0, 1, 2, 3, 4, 5, 6, 7]) -> chess.Bitboard:
+    """
+    Get a `chess.Bitboard` of `rank`'s adjacent ranks.
+    """
+    return (chess.BB_RANKS[rank - 1] if rank > 0 else 0) | (
+        chess.BB_RANKS[rank + 1] if rank < 7 else 0
+    )
+
+
+def get_pawn_sans(only_for_color: chess.Color | None = None) -> Set[str]:
+    """
+    Get all possible SAN strings for pawn moves. If `only_for_color` is
+    specified, then only return pawn moves for that color; otherwise return
+    pawn moves for both colors.
+    """
+    sans = set()
+
+    PAWN_OCCUPIABLE = chess.SquareSet(chess.BB_ALL - chess.BB_BACKRANKS)
+
+    w_pawn = chess.Piece.from_symbol("P")
+    b_pawn = chess.Piece.from_symbol("p")
+
+    def add_pawn_sans_for_color(color: chess.Color):
+        _b.turn = color
+        self_pawn = w_pawn if color == chess.WHITE else b_pawn
+        other_pawn = b_pawn if color == chess.WHITE else w_pawn
+
+        for from_square in PAWN_OCCUPIABLE:
+            _b.clear_board()
+            _b.set_piece_at(from_square, self_pawn)
+            attacks = _b.attacks(from_square)
+
+            # Set enemy pawns at the diagonal attacked squares
+            for s in attacks:
+                _b.set_piece_at(s, other_pawn)
+
+            # Now forward moves and the diagonal captures are legal,
+            # so we can just add all legal SAN moves
+            for move in _b.legal_moves:
+                sans.add(_b.san(move))
+
+    if only_for_color in (chess.WHITE, None):
+        add_pawn_sans_for_color(chess.WHITE)
+    if only_for_color in (chess.BLACK, None):
+        add_pawn_sans_for_color(chess.BLACK)
+
+    return sans
+
+
+def get_piece_sans(symbol: Literal["N", "B", "R", "Q"]) -> Set[str]:
+    """
+    Get all possible SAN strings for piece types that might require a
+    discriminator—namely knights, bishops, rooks, and queens.
+    """
+    assert symbol in (
+        "N",
+        "B",
+        "R",
+        "Q",
+    ), f'Invalid piece symbol {symbol}, must be in ("N", "B", "R", "Q")'
+
+    piece = chess.Piece.from_symbol(symbol)
+    is_knight = piece.piece_type == chess.KNIGHT
+    is_rook = piece.piece_type == chess.ROOK
+
+    sans = set()
+
+    def add_sans(discriminator: str, to_square):
+        """
+        Add two SAN strings to `sans` for the given `discriminator` and `to_square`:
+        one for a non-capturing move and one for a capturing move.
+        """
+        to_square_name = chess.square_name(to_square)
+        for capture in ("", "x"):
+            sans.add(f"{symbol}{discriminator}{capture}{to_square_name}")
+
+    for to_square in chess.SQUARES:
+        # We always add the un-discriminated move and capturing move
+        add_sans("", to_square)
+
+        # For N/B/R/Qs, we can determine whether the piece needs a file discriminator
+        # independently based solely on the piece type and the `to_square`. Whether it
+        # needs a rank discriminator and/or a full-square discriminator depends also on
+        # the `from_square`, which is handled in loops below.
+        _b.clear_board()
+        _b.set_piece_at(to_square, piece)
+        attacks = _b.attacks(to_square)
+
+        # If `piece` is a knight or rook (which always may require a file discriminator)
+        # or if two or more non-vertical rays protrude from `to_square` in the direction of
+        # `piece`'s movement, we need a file discriminator.
+        # Below we do a bitwise AND between `attacks` and `to_square`'s adjacent files.
+        # If the resulting int has 2 or more truthy (overlapping) bits, then we could
+        # put a `piece` on both of these squares to require a rank discriminator when
+        # moving to `to_square`.
+        if (
+            is_rook
+            or is_knight
+            or int.bit_count(
+                int(attacks) & get_adjacent_files(chess.square_file(to_square))
+            )
+            >= 2
+        ):
+            for from_square in attacks:
+                discriminator = chess.FILE_NAMES[chess.square_file(from_square)]
+                add_sans(discriminator, to_square)
+
+        # If the `piece` is a knight or if two or more non-vertical rays protrude from `to_square`
+        # in the direction of the piece's movement, we need to check each `from_square` to see if
+        # its file has two or more truthy bits in `attacks` (including itself). If so, we need a
+        # rank discriminator.
+        if (
+            is_knight
+            or int.bit_count(
+                int(attacks) & get_adjacent_ranks(chess.square_rank(to_square))
+            )
+            >= 2
+        ):
+            for from_square in attacks:
+                num_file_attacks = int.bit_count(
+                    int(attacks) & chess.BB_FILES[chess.square_file(from_square)]
+                )
+                if num_file_attacks >= 2:
+                    discriminator = chess.RANK_NAMES[chess.square_rank(from_square)]
+                    add_sans(discriminator, to_square)
+
+        # For all piece types (N/B/R/Qs), we need to check each `from_square` to see if
+        # its file and rank both have two or more truthy bits in `attacks` (including itself).
+        # If so, we need a full-square discriminator.
+        for from_square in attacks:
+            num_file_attacks = int.bit_count(
+                int(attacks) & chess.BB_FILES[chess.square_file(from_square)]
+            )
+            num_rank_attacks = int.bit_count(
+                int(attacks) & chess.BB_RANKS[chess.square_rank(from_square)]
+            )
+            if num_file_attacks >= 2 and num_rank_attacks >= 2:
+                discriminator = chess.square_name(from_square)
+                add_sans(discriminator, to_square)
+
+    return sans
+
+
+def get_king_sans() -> Set[str]:
+    """
+    Get all possible SAN strings for king moves.
+    """
+    sans = set()
+
+    for to_square in chess.SQUARES:
+        # Add the capturing and non-capturing SANs
+        to_square_name = chess.square_name(to_square)
+        sans.add(f"K{to_square_name}")
+        sans.add(f"Kx{to_square_name}")
+
+    # Add castling moves
+    sans.add("O-O")
+    sans.add("O-O-O")
+
+    return sans
+
+
+def main():
+    pawn_sans = get_pawn_sans()
+    knight_sans = get_piece_sans("N")
+    bishop_sans = get_piece_sans("B")
+    rook_sans = get_piece_sans("R")
+    queen_sans = get_piece_sans("Q")
+    king_sans = get_king_sans()
+    all_sans = (
+        pawn_sans | knight_sans | bishop_sans | rook_sans | queen_sans | king_sans
+    )
+
+    def sort_key(s):
+        return (len(s), s)
     
-    # For non-pawns, this is sufficient
-    _b.clear_board()
-    _b.set_piece_at(from_square, chess.Piece.from_symbol(symbol))
-    for sq in _b.attacks(from_square):
-        destinations.add(sq)
+    all_sans = sorted(all_sans, key=sort_key)
+    all_sans_with_symbols = sorted(
+        [san + symbol for symbol in ("", "+", "#") for san in all_sans], key=sort_key
+    )
 
-    # For pawns, manually add other-color pawn capture directions,
-    # and non-capture movement squares
-    if symbol == 'p':
-        destinations |= get_squareset(from_square, 'P')
+    with open("san_strings.txt", "w") as f:
+        f.write("\n".join(all_sans))
 
-        file, rank = chess.square_name(from_square)
-        destinations.add(chess.parse_square(file + str(int(rank) - 1)))
-        destinations.add(chess.parse_square(file + str(int(rank) + 1)))
-        if rank == '2':
-            destinations.add(chess.parse_square(file + str(int(rank) + 2)))
-        elif rank == '7':
-            destinations.add(chess.parse_square(file + str(int(rank) - 2)))
+    with open("san_strings_with_symbols.txt", "w") as f:
+        f.write("\n".join(all_sans_with_symbols))
 
-    return destinations
+    print("Done!")
 
 
-CORNERS_SQUARESET = chess.SquareSet(chess.BB_CORNERS)
-BACKRANKS_SQUARESET = chess.SquareSet(chess.BB_BACKRANKS)
-EDGES_SQUARESET = chess.SquareSet(chess.BB_BACKRANKS | chess.BB_FILES[0] | chess.BB_FILES[7])
-
-# Special cases for bishop SAN moves with rank disambiguators
-EDGE_2_SQUARESET = chess.SquareSet(chess.BB_A2 | chess.BB_A7 | chess.BB_H2 | chess.BB_H7)
-EDGE_3_SQUARESET = chess.SquareSet(chess.BB_A3 | chess.BB_A6 | chess.BB_H3 | chess.BB_H6)
-EDGE_4_SQUARESET = chess.SquareSet(chess.BB_A4 | chess.BB_A5 | chess.BB_H4 | chess.BB_H5)
-
-san_strings: Set[str] = {'O-O', 'O-O-O'}  # Start by adding castling moves manually
-for from_square in chess.SQUARES:
-    from_square_name = chess.square_name(from_square)
-    from_file, from_rank = from_square_name
-
-    PIECE_SYMBOLS = chess.PIECE_SYMBOLS[1:] if from_rank not in ('1', '8') else chess.PIECE_SYMBOLS[2:]
-    piece_destinations = {symbol: get_squareset(from_square, symbol) for symbol in PIECE_SYMBOLS}
-    for symbol, to_squares in piece_destinations.items():
-        for to_square in to_squares:
-            to_square_name = chess.square_name(to_square)
-            to_file, to_rank = to_square_name
-
-            if symbol == 'p':
-                if from_file == to_file:
-                    # Non-capture
-                    san = to_square_name
-                else:
-                    # Capture
-                    san = f'{from_file}x{to_square_name}'
-
-                # Promotions
-                if to_rank in ('1', '8'):
-                    san_strings |= {
-                        f'{san}=N',
-                        f'{san}=B',
-                        f'{san}=R',
-                        f'{san}=Q'
-                    }
-                else:
-                    san_strings.add(san)
-            elif symbol == 'n':
-                if to_square in BACKRANKS_SQUARESET:
-                    # Knights moving to ranks 1 or 8 will never be disambiguated by rank or full square
-                    san_strings |= {
-                        f'N{to_square_name}',
-                        f'N{from_file}{to_square_name}',
-                        f'Nx{to_square_name}',
-                        f'N{from_file}x{to_square_name}',
-                    }
-                else:
-                    san_strings |= {
-                        f'N{to_square_name}',
-                        f'N{from_file}{to_square_name}',
-                        f'N{from_rank}{to_square_name}',
-                        f'N{from_square_name}{to_square_name}',
-                        f'Nx{to_square_name}',
-                        f'N{from_file}x{to_square_name}',
-                        f'N{from_rank}x{to_square_name}',
-                        f'N{from_square_name}x{to_square_name}',
-                    }
-            elif symbol == 'b':
-                if to_square in CORNERS_SQUARESET:
-                    # Bishops moving to the corners will never require any disambiguator
-                    san_strings.add(f'B{to_square_name}')
-                elif to_square in BACKRANKS_SQUARESET:
-                    # Bishops moving to ranks 1 or 8 will never be disambiguator by rank or full square
-                    san_strings |= {
-                        f'B{to_square_name}',
-                        f'B{from_file}{to_square_name}',
-                        f'Bx{to_square_name}',
-                        f'B{from_file}x{to_square_name}',
-                    }
-                elif to_square in EDGES_SQUARESET:
-                    san_strings |= {
-                        f'B{to_square_name}',
-                        f'B{from_file}{to_square_name}',
-                        f'Bx{to_square_name}',
-                        f'B{from_file}x{to_square_name}',
-                    }
-
-                    # Bishops moving to a2-a7 or h2-h7 require 3 special cases (see README)
-                    # Get the length of the shortest diagonal protruding from ``to_square``
-                    if to_square in EDGE_2_SQUARESET:
-                        shortest_diag_len = 1
-                    elif to_square in EDGE_3_SQUARESET:
-                        shortest_diag_len = 2
-                    elif to_square in EDGE_4_SQUARESET:
-                        shortest_diag_len = 3
-                    else:
-                        raise RuntimeError('This should not happen')
-
-                    # For a rank descriminator to be possible, source and destination square
-                    # must be separated by <= ``shortest_diag_len`` ranks
-                    if abs(int(to_rank) - int(from_rank)) <= shortest_diag_len:
-                        san_strings |= {
-                            f'B{from_rank}{to_square_name}',
-                            f'B{from_rank}x{to_square_name}',
-                        }
-                else:
-                    san_strings |= {
-                        f'B{to_square_name}',
-                        f'B{from_file}{to_square_name}',
-                        f'B{from_rank}{to_square_name}',
-                        f'B{from_square_name}{to_square_name}',
-                        f'Bx{to_square_name}',
-                        f'B{from_file}x{to_square_name}',
-                        f'B{from_rank}x{to_square_name}',
-                        f'B{from_square_name}x{to_square_name}',
-                    }
-            elif symbol == 'r':
-                if to_square in BACKRANKS_SQUARESET:
-                    # Rooks moving to ranks 1 or 8 will never be discriminated by rank or full square
-                    san_strings |= {
-                        f'R{to_square_name}',
-                        f'R{from_file}{to_square_name}',
-                        f'Rx{to_square_name}',
-                        f'R{from_file}x{to_square_name}',
-                    }
-                else:
-                    san_strings |= {
-                        f'R{to_square_name}',
-                        f'R{from_file}{to_square_name}',
-                        f'R{from_rank}{to_square_name}',
-                        f'R{from_square_name}{to_square_name}',
-                        f'Rx{to_square_name}',
-                        f'R{from_file}x{to_square_name}',
-                        f'R{from_rank}x{to_square_name}',
-                        f'R{from_square_name}x{to_square_name}',
-                    }
-            elif symbol == 'q':
-                san_strings |= {
-                    f'Q{to_square_name}',
-                    f'Q{from_file}{to_square_name}',
-                    f'Q{from_rank}{to_square_name}',
-                    f'Q{from_square_name}{to_square_name}',
-                    f'Qx{to_square_name}',
-                    f'Q{from_file}x{to_square_name}',
-                    f'Q{from_rank}x{to_square_name}',
-                    f'Q{from_square_name}x{to_square_name}',
-                }
-            elif symbol == 'k':
-                # Kings will never require disambiguator
-                san_strings |= {
-                    f'K{to_square_name}',
-                    f'Kx{to_square_name}',
-                }
-            else:
-                raise ValueError(f'bad symbol: {symbol}')
-
-with open('san_strings.txt', 'w') as f:
-    f.write('\n'.join(sorted(san_strings, key=lambda s: (len(s), s))))
-
-print('Done!')
+if __name__ == "__main__":
+    main()

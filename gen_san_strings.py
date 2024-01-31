@@ -129,7 +129,7 @@ def get_piece_sans(symbol: Literal["N", "B", "R", "Q"]) -> Set[str]:
         add_sans("", to_square)
 
         """
-        To really understand the code below we need to understand the algorithm a human takes
+        To really understand the code below, we need to understand the algorithm a human uses
         to determine whether a move from a `from_square` to a `to_square` might require a
         file, rank, and/or full-square discriminator.
 
@@ -143,10 +143,11 @@ def get_piece_sans(symbol: Literal["N", "B", "R", "Q"]) -> Set[str]:
         reach `to_square`.
 
         This is important when considering disriminators because we are only interested in squares
-        from which another `piece` can legally move to `to_square` that might create a situation
-        where a rank, file, or full-square discriminator is necessary.
+        from which another `piece` can legally move to `to_square`, and those which might create 
+        a situation where a rank, file, or full-square discriminator is necessary.
 
-        So the algorithm for determining whether we need a **file** discriminator is as follows:
+        With this in mind, the algorithm for determining whether we need a **file** discriminator
+        is as follows:
           - Take an empty board and place a `piece` on `to_square`, then get a bitboard `attacks`
             of all the squares it can move to. These may all be considered possible `from_square`s.
           - Consider each `from_square` in `attacks`:
@@ -158,10 +159,10 @@ def get_piece_sans(symbol: Literal["N", "B", "R", "Q"]) -> Set[str]:
                 given that a `piece` can legally move from `from_square` to `to_square`.
               - We also know that any squares in this bitmask which fall on the same file as
                 `from_square` are not relevant for determining whether a file discriminator might be 
-                required: if another `piece` were to occupy one of those squares, then it would
-                necessarily require a rank discriminator, not a file discriminator, when moving to
-                `to_square`. Therefore we subtract the bitmask of all squares in `from_square`'s
-                file from the bitboard in the previous step as well.
+                required: if another `piece` were to occupy one of those squares, then its move to
+                `to_square` would necessarily require a rank discriminator, not a file discriminator.
+                Therefore we subtract the bitmask of all squares in `from_square`'s file from the 
+                bitboard in the previous step as well.
               - We now have a bitboard of all squares from which a `piece` can legally move to 
                 `to_square` (given that the move `piece` from `from_square` to `to_square` is legal)
                 such that, if a `piece` really were to occupy any one of those squares, it has 
@@ -169,9 +170,9 @@ def get_piece_sans(symbol: Literal["N", "B", "R", "Q"]) -> Set[str]:
                 is left to do is check whether one or more files in this bitboard have any truthy bits.
                 If so, then the `from_square` for this iteration can require a file discriminator.
         
-        The algorithm is similar for determining whether we need a **rank** discriminator, but
+        The algorithm for determining whether we need a **rank** discriminator is similar, but
         has some differences which account for the fact that a file discriminator is preferred
-        over a rank discriminator when both may disambiguate the move:
+        over a rank discriminator when both can disambiguate the move:
           - Take an empty board and place a `piece` on `to_square`, then get a bitboard `attacks`
             of all the squares it can move to. These may all be considered possible `from_square`s.
           - Consider each `from_square` in `attacks`:
@@ -179,10 +180,10 @@ def get_piece_sans(symbol: Literal["N", "B", "R", "Q"]) -> Set[str]:
                 by the same logic as above.
               - This time, we know that any squares that **do not** fall on the same file as 
                 `from_square` are not relevant for determining whether a rank discriminator might be 
-                required: if another `piece` were to occupy one of those squares, then it would 
-                necessarily require a file discriminator, not a rank discriminator, when moving to
-                `to_square`. Therefore we use a logical AND between the bitboard from the previous step
-                and the bitmask of all squares in `from_square`'s file.
+                required: if another `piece` were to occupy one of those squares, then its move to
+                `to_square` would necessarily require a file discriminator, not a rank discriminator.
+                Therefore we use a logical AND between the bitboard from the previous step and the
+                bitmask of all squares in `from_square`'s file.
               - By the same logic as above, all that is left to do is check whether one or more ranks
                 in this bitboard have any truthy bits. If so, then the `from_square` for this 
                 iteration can require a rank discriminator.

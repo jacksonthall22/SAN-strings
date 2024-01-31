@@ -92,9 +92,9 @@ you can find the implementations in `gen_san_strings.py` at `get_pawn_sans()` an
     - If there is any truthy bit in `from_square`'s rank and also in `from_square`'s file, this move can require a full-square discriminator
 
 ### Intuitive explanations
-To really understand the code below, we need to understand the algorithm a human uses
-to determine whether a move from a `from_square` to a `to_square` might require a
-file, rank, and/or full-square discriminator.
+To really understand the code in this repo, we need to understand the algorithm a human uses
+to determine whether a move from a `from_square` to a `to_square` might require a file, rank,
+and/or full-square discriminator.
 
 First we should consider that if moving from `from_square` to `to_square` is a legal
 move, then even if there is another piece of the same type and color on the ray which extends 

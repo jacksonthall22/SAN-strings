@@ -181,7 +181,7 @@ def get_piece_sans(symbol: Literal["N", "B", "R", "Q"]) -> Set[str]:
               - This time, we know that any squares that **do not** fall on the same file as 
                 `from_square` are not relevant for determining whether a rank discriminator might be 
                 required: if another `piece` were to occupy one of those squares, then its move to
-                `to_square` would necessarily require a file discriminator, not a rank discriminator.
+                `to_square` would necessarily preference the file discriminator, not the rank discriminator.
                 Therefore we use a logical AND between the bitboard from the previous step and the
                 bitmask of all squares in `from_square`'s file.
               - By the same logic as above, all that is left to do is check whether one or more ranks

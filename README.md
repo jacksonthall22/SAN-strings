@@ -38,15 +38,15 @@ must be inserted into the "standard" SAN move to disambiguate between multiple l
 If we have a `piece`, a `from_square`, and a `to_square`, how do we decide which (if any) discriminators
 the SAN move might require? I'm glad you asked—this repo has the answer.
 
-## Generation algorithms
+## SAN generation algorithms
 In a previous version of this code, special logic was used to manually handle all the edge cases
 for the different piece types. Unfortunately, this failed miserably, generating some syntactically-legal
 SAN moves that could never actually occur and failing to generate some that could. When I dug into the issues
 more deeply, I realized this problem is quite difficult to reason through.
 
-Now, the code uses a much more logical and generalized algorithm that was designed to resemble how a human 
+Now, the code uses three much more logical and generalized algorithms that were designed to resemble how a human 
 might decide whether a particular `from_square` -> `to_square` move by a certain `piece` type could
-require a rank, file, and/or full-square discriminator, based on which other squares a piece of
+require a rank, file, and/or full-square discriminator respectively, based on which other squares a piece of
 the same type could come from when moving to `to_square`. Read on for the pseudocode, as well as some more
 intuitive explanations.
 

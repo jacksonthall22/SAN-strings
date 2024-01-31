@@ -1,15 +1,18 @@
 # SAN Strings
 
-This simple script generates all **30,474** possible [Standard Algebraic Notation (SAN)](https://en.wikipedia.org/wiki/Algebraic_notation_(chess)#:~:text=Algebraic%20notation%20(or%20AN)%20is,books%2C%20magazines%2C%20and%20newspapers.) strings for chess moves, with some special logic to
-avoid listing SAN strings that can never actually occur for geometric reasons.
+This simple script generates all **30,474** possible [Standard Algebraic Notation (SAN)](https://en.wikipedia.org/wiki/Algebraic_notation_(chess)#:~:text=Algebraic%20notation%20(or%20AN)%20is,books%2C%20magazines%2C%20and%20newspapers.) 
+strings for chess moves, with some special logic to avoid listing SAN strings that can never actually occur for geometric reasons.
 
-If someone notices a mistake in my logic (that some strings generated can never occur), please open an issue!
+If someone notices a mistake in my logic (that some strings generated can never occur), please open an issue!*
+
+###### * But after the last update, I truly think I got them all!
 
 ### Note
 Check (`+`) and checkmate (`#`) symbols are omitted in `san_strings.txt` but included in `san_strings_with_symbols.txt`. It is fairly easy 
 to convince yourself that no special logic is required to determine which subset of all SAN moves could deliver check/mate: all moves can 
-deliver either check or mate at least via a discovery. Therefore, `san_strings_with_symbols.txt` (30,474 lines) is exactly three times the length of 
-`san_strings.txt` (10,158 lines) as it simply makes two additional copies of each SAN move, one appending `+` and one appending `#`. SANs are both files are sorted by the key `(len(san), san)`.
+deliver either check or mate at least via a discovery. Therefore, `san_strings_with_symbols.txt` (30,474 lines) is exactly three times the 
+length of `san_strings.txt` (9,758 lines) as it simply makes two additional copies of each SAN move, one appending `+` and one appending `#`.
+SANs in both files are sorted by the key `(len(san), san)`.
 
 # Run it yourself
 ```sh
@@ -20,9 +23,8 @@ python3 gen_san_strings.py
 
 # How it works
 ## What are discriminators?
-
-Generating every possible SAN move would be simple if not for discriminators, which are
-occasionally must be used to disambiguate between multiple legal moves.
+Generating every possible SAN move in chess would be simple if not for discriminators, which occasionally
+must be inserted into the "standard" SAN move to disambiguate between multiple legal options.
  - N**b**d2:
 
    ![image](https://backscattering.de/web-boardimage/board.svg?size=200&coordinates=true&fen=8/8/8/8/8/5N2/8/1N6&arrows=Gb1d2)
@@ -33,20 +35,25 @@ occasionally must be used to disambiguate between multiple legal moves.
 
    ![image](https://backscattering.de/web-boardimage/board.svg?size=200&coordinates=true&fen=8/8/1Q5Q/8/8/1Q6/8/8&arrows=Gb6e3)
 
-Note that only knights, bishops, rooks, and queens may need discriminators: pawns have their own 
-special move syntax in SAN and there is never more than one king per side.
+If we have a `piece`, a `from_square`, and a `to_square`, how do we decide which (if any) discriminators
+the SAN move might require? I'm glad you asked—this repo has the answer.
 
 ## Generation algorithms
 In a previous version of this code, special logic was used to manually handle all the edge cases
-for the different piece types. Unfortunately, this failed miserably, generating SAN moves that could
-never occur and failing to generate some that could. It turns out this problem is quite difficult to
-think through correctly.
+for the different piece types. Unfortunately, this failed miserably, generating some syntactically-legal
+SAN moves that could never actually occur and failing to generate some that could. When I dug into the issues
+more deeply, I realized this problem is quite difficult to reason through.
 
-Now, a much more logical and general algorithm is used that more closely resembles how a human 
+Now, the code uses a much more logical and generalized algorithm that was designed to resemble how a human 
 might decide whether a particular `from_square` -> `to_square` move by a certain `piece` type could
 require a rank, file, and/or full-square discriminator, based on which other squares a piece of
-the same type could come from when moving to `to_square`. Readd on for the pseudocode, as well as
-some more intuitive explanations.
+the same type could come from when moving to `to_square`. Read on for the pseudocode, as well as some more
+intuitive explanations.
+
+Note that only knight, bishop, rook, and queen moves ever use discriminators. Pawns have their own special 
+move syntax and there is never more than one king per color. The details about how SAN strings are generated
+for these piece types is omitted below because it is straightforward and comparatively uninteresting. However,
+you can find the implementations in `gen_san_strings.py` at `get_pawn_sans()` and `get_king_sans()`.
 
 ### Pseudocode
 #### File discriminators
